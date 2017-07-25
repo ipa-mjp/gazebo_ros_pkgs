@@ -113,6 +113,8 @@ catkin_package(
   gazebo_ros_planar_move
   gazebo_ros_range
   gazebo_ros_vacuum_gripper
+  GazeboGraspGripper
+  GazeboGraspFix
 
   CATKIN_DEPENDS
   message_runtime
@@ -282,6 +284,10 @@ target_link_libraries(gazebo_ros_vacuum_gripper ${catkin_LIBRARIES} ${Boost_LIBR
 ## Add your new plugin here
 ##
 
+add_library(gazebo_grasp_fix SHARED src/GazeboGraspFix.cpp src/GazeboGraspGripper.cpp)
+add_dependencies(gazebo_grasp_fix ${catkin_EXPORTED_TARGETS})
+target_link_libraries(gazebo_grasp_fix ${GAZEBO_LIBRARIES} ${Boost_LIBRARIES})
+
 ## Template
 add_library(gazebo_ros_template src/gazebo_ros_template.cpp)
 target_link_libraries(gazebo_ros_template ${catkin_LIBRARIES} ${Boost_LIBRARIES})
@@ -323,6 +329,7 @@ install(TARGETS
   pub_joint_trajectory_test
   gazebo_ros_gpu_laser
   gazebo_ros_range
+  gazebo_grasp_fix
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   )

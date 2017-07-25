@@ -164,6 +164,13 @@ bool GazeboRosVacuumGripper::OffServiceCallback(std_srvs::Empty::Request &req,
   } else {
     ROS_WARN_NAMED("vacuum_gripper", "gazebo_ros_vacuum_gripper: already status is 'off'");
   }
+
+  physics::Model_V models = world_->GetModels();
+    for (size_t i = 0; i < models.size(); i++)
+    {
+    	models[i]->RemoveJoint("attached_object");
+    }
+
   return true;
 }
 
@@ -187,14 +194,34 @@ void GazeboRosVacuumGripper::UpdateChild()
     {
       continue;
     }
+
     physics::Link_V links = models[i]->GetLinks();
     for (size_t j = 0; j < links.size(); j++) {
       math::Pose link_pose = links[j]->GetWorldPose();
+//std::cout<<models[i]->GetWorld()->GetName()<<std::endl;
+//---------------------------------------------------------------------
+/*
+      math::Pose link_pose_wrt_odom = link_->GetWorldPose();
+      ROS_WARN_STREAM("pose: "<<link_pose_wrt_odom);
+
+      math::Pose arm_tool0_pose = link_pose_wrt_odom;
+      arm_tool0_pose.pos.y = link_pose_wrt_odom.pos.y + 0.2322;
+
+      math::Pose final_pose;
+      final_pose.pos.x = models[i]->GetBoundingBox().GetXLength() * 0.5 + arm_tool0_pose.pos.x ;
+      final_pose.pos.y = models[i]->GetBoundingBox().GetYLength() * 0.5 + arm_tool0_pose.pos.y ;
+      final_pose.pos.z = models[i]->GetBoundingBox().GetZLength() * 0.5 + arm_tool0_pose.pos.z ;
+
+      double norm1 = final_pose.pos.GetLength();
+      std::cout<<"norm: "<<norm1<<std::endl;
+ */
+//-----------------------------------------------------------------------
+
       math::Pose diff = parent_pose - link_pose;
       double norm = diff.pos.GetLength();
-      if (norm < 0.05) {
+      if (norm < 0.4) {
         links[j]->SetLinearAccel(link_->GetWorldLinearAccel());
-        links[j]->SetAngularAccel(link_->GetWorldAngularAccel());
+        links[j]->SetAngularAccel(math::Vector3(0, 0, 0));
         links[j]->SetLinearVel(link_->GetWorldLinearVel());
         links[j]->SetAngularVel(link_->GetWorldAngularVel());
         double norm_force = 1 / norm;
@@ -203,12 +230,30 @@ void GazeboRosVacuumGripper::UpdateChild()
           // TODO(unknown): should apply friction actually
           link_pose.Set(parent_pose.pos, link_pose.rot);
           links[j]->SetWorldPose(link_pose);
+
         }
         if (norm_force > 20) {
-          norm_force = 20;  // max_force
+          norm_force = 100;  // max_force
         }
-        math::Vector3 force = norm_force * diff.pos.Normalize();
+        math::Vector3 force = (-1 * norm_force) * diff.pos.Normalize();
         links[j]->AddForce(force);
+//---------------------------------------------------------------------------------------------
+        std::string obj_name = models[models.size()-1]->GetName();
+        std::cout<<obj_name<<std::endl;
+        physics::LinkPtr objLink = models[i]->GetLink();
+        //math::Box box = models[i]->GetBoundingBox();
+        //std::cout<<box.GetXLength()<<std::endl;
+        //physics::LinkPtr objLink = models[models.size()-1]->GetLink();
+        //math::Pose pose= link_->GetWorldPose();
+        //parent_pose.pos.x *= -1;parent_pose.pos.x *= -1;parent_pose.pos.z *= -1;
+        //parent_pose.pos.y += 0.2922;
+        //parent_pose.pos.y *= -1;
+        //link_pose.Set(parent_pose.pos, link_pose.rot);
+        //link_->SetWorldPose(link_pose);
+        //ROS_WARN_STREAM("x: "<<pose.pos.x<<"y: "<<pose.pos.y<<"z: "<<pose.pos.z);
+        models[i]->CreateJoint("attached_object","fixed", link_, objLink);
+
+//---------------------------------------------------------------------------------------------
         grasping_msg.data = true;
       }
     }

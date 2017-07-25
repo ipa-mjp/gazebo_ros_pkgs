@@ -279,6 +279,13 @@ void GazeboRosBumper::OnContact()
       total_wrench.torque.y += wrench.torque.y;
       total_wrench.torque.z += wrench.torque.z;
 
+      total_wrench.force.x  *= 0;
+      total_wrench.force.y  *= 0;
+      total_wrench.force.z  *= 0;
+      total_wrench.torque.x *= 0;
+      total_wrench.torque.y *= 0;
+      total_wrench.torque.z *= 0;	
+
       // transform contact positions into relative frame
       // set contact positions
       gazebo::math::Vector3 position = frame_rot.RotateVectorReverse(
