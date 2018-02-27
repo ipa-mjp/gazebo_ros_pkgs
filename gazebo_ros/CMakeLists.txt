@@ -22,9 +22,13 @@ else()
   message(FATAL_ERROR "pkg-config is required; please install it")
 endif()
 
+set(GAZEBOINCLUDEDIRS /usr/include;/usr/include/gazebo-5.0;/usr/include/sdformat-2.3) 
+set(GAZEBOLIBRARYDIRS /usr/lib/x86_64-linux-gnu;/usr/lib/x86_64-linux-gnu/gazebo-5.0/plugins)
+
 # Depend on system install of Gazebo
 find_package(gazebo REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GAZEBO_CXX_FLAGS}")
+
 
 find_package(Boost REQUIRED COMPONENTS thread)
 
@@ -96,7 +100,7 @@ install(TARGETS gazebo_ros_api_plugin gazebo_ros_paths_plugin
   )
 
 # Install Gazebo Scripts
-install(PROGRAMS scripts/gazebo scripts/debug scripts/gzclient scripts/gzserver scripts/gdbrun scripts/perf scripts/spawn_model
+install(PROGRAMS scripts/gazebo scripts/debug scripts/gzclient scripts/gzserver scripts/gdbrun scripts/perf scripts/spawn_model scripts/libcommon.sh
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
 
